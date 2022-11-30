@@ -1,5 +1,6 @@
 #![deny(clippy::unimplemented, clippy::unwrap_used, clippy::ok_expect)]
 
+use std::backtrace::Backtrace;
 use std::fmt;
 
 use log::{debug, Level};
@@ -366,7 +367,7 @@ impl MemoryType {
         &mut self,
         device: &ID3D12Device,
         desc: &AllocationCreateDesc<'_>,
-        backtrace: Option<backtrace::Backtrace>,
+        backtrace: Option<Backtrace>,
     ) -> Result<Allocation> {
         let allocation_type = AllocationType::Linear;
 
@@ -656,8 +657,10 @@ impl Allocator {
         let alignment = desc.alignment;
 
         let backtrace = if self.debug_settings.store_stack_traces {
-            Some(backtrace::Backtrace::new_unresolved())
+            Some(Backtrace::force_capture())
         } else {
+            // TODO:
+            // Backtrace::disabled()
             None
         };
 
@@ -667,7 +670,7 @@ impl Allocator {
                 &desc.name, size, alignment
             );
             if self.debug_settings.log_stack_traces {
-                let backtrace = backtrace::Backtrace::new();
+                let backtrace = Backtrace::force_capture();
                 debug!("Allocation stack trace: {:?}", &backtrace);
             }
         }
@@ -699,7 +702,7 @@ impl Allocator {
             let name = allocation.name.as_deref().unwrap_or("<null>");
             debug!("Freeing `{}`.", name);
             if self.debug_settings.log_stack_traces {
-                let backtrace = backtrace::Backtrace::new();
+                let backtrace = Backtrace::force_capture();
                 debug!("Free stack trace: {:?}", backtrace);
             }
         }

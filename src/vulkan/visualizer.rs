@@ -1,7 +1,7 @@
 #![allow(clippy::new_without_default)]
 
 use super::Allocator;
-use crate::allocator::{fmt_bytes, resolve_backtrace};
+use crate::allocator::fmt_bytes;
 use crate::visualizer::ColorScheme;
 use log::error;
 
@@ -379,10 +379,12 @@ impl AllocatorVisualizer {
                     ui.table_next_column();
                     ui.text(&alloc.name);
 
-                    if ui.is_item_hovered() && alloc.backtrace.is_some() {
-                        ui.tooltip(|| {
-                            ui.text(resolve_backtrace(&alloc.backtrace));
-                        });
+                    if ui.is_item_hovered() {
+                        if let Some(backtrace) = alloc.backtrace {
+                            ui.tooltip(|| {
+                                ui.text(backtrace.to_string());
+                            });
+                        }
                     }
 
                     ui.table_next_column();

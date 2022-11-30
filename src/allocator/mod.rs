@@ -1,3 +1,5 @@
+use std::backtrace::Backtrace;
+
 use crate::result::*;
 
 pub(crate) mod dedicated_block_allocator;
@@ -16,22 +18,10 @@ pub(crate) enum AllocationType {
     NonLinear,
 }
 
-#[derive(Clone)]
 pub(crate) struct AllocationReport {
     pub(crate) name: String,
     pub(crate) size: u64,
-    pub(crate) backtrace: Option<backtrace::Backtrace>,
-}
-
-pub(crate) fn resolve_backtrace(backtrace: &Option<backtrace::Backtrace>) -> String {
-    backtrace.as_ref().map_or_else(
-        || "".to_owned(),
-        |bt| {
-            let mut bt = bt.clone();
-            bt.resolve();
-            format!("{:?}", bt)
-        },
-    )
+    pub(crate) backtrace: Option<Backtrace>,
 }
 
 #[cfg(feature = "visualizer")]
@@ -47,7 +37,7 @@ pub(crate) trait SubAllocator: SubAllocatorBase + std::fmt::Debug {
         allocation_type: AllocationType,
         granularity: u64,
         name: &str,
-        backtrace: Option<backtrace::Backtrace>,
+        backtrace: Option<Backtrace>,
     ) -> Result<(u64, std::num::NonZeroU64)>;
 
     fn free(&mut self, chunk_id: Option<std::num::NonZeroU64>) -> Result<()>;

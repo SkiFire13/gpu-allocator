@@ -5,12 +5,14 @@ mod visualizer;
 #[cfg(feature = "visualizer")]
 pub use visualizer::AllocatorVisualizer;
 
-use super::allocator;
-use super::allocator::AllocationType;
-use ash::vk;
-use log::{debug, Level};
+use std::backtrace::Backtrace;
 use std::fmt;
 
+use ash::vk;
+use log::{debug, Level};
+
+use super::allocator;
+use super::allocator::AllocationType;
 use crate::{
     allocator::fmt_bytes, AllocationError, AllocatorDebugSettings, MemoryLocation, Result,
 };
@@ -231,7 +233,7 @@ impl MemoryType {
         device: &ash::Device,
         desc: &AllocationCreateDesc<'_>,
         granularity: u64,
-        backtrace: Option<backtrace::Backtrace>,
+        backtrace: Option<Backtrace>,
     ) -> Result<Allocation> {
         let allocation_type = if desc.linear {
             AllocationType::Linear
@@ -573,8 +575,10 @@ impl Allocator {
         let alignment = desc.requirements.alignment;
 
         let backtrace = if self.debug_settings.store_stack_traces {
-            Some(backtrace::Backtrace::new_unresolved())
+            Some(Backtrace::force_capture())
         } else {
+            // TODO:
+            // Backtrace::disabled()
             None
         };
 
@@ -584,7 +588,7 @@ impl Allocator {
                 &desc.name, size, alignment
             );
             if self.debug_settings.log_stack_traces {
-                let backtrace = backtrace::Backtrace::new();
+                let backtrace = Backtrace::force_capture();
                 debug!("Allocation stack trace: {:?}", backtrace);
             }
         }
@@ -673,7 +677,7 @@ impl Allocator {
             let name = allocation.name.as_deref().unwrap_or("<null>");
             debug!("Freeing `{}`.", name);
             if self.debug_settings.log_stack_traces {
-                let backtrace = format!("{:?}", backtrace::Backtrace::new());
+                let backtrace = format!("{:?}", Backtrace::force_capture());
                 debug!("Free stack trace: {}", backtrace);
             }
         }
