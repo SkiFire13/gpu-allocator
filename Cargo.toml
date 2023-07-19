@@ -23,9 +23,9 @@ backtrace = "0.3"
 log = "0.4"
 thiserror = "1.0"
 presser = { version = "0.3" }
-# Only needed for vulkan.  Disable all default features as good practice,
+# Only needed for Vulkan.  Disable all default features as good practice,
 # such as the ability to link/load a Vulkan library.
-ash = { version = ">=0.34, <=0.37", optional = true, default-features = false, features = ["debug"] }
+ash = { version = "=0.37.0", optional = true, default-features = false, features = ["debug"] }
 # Only needed for visualizer.
 imgui = { version = "0.11", features = ["tables-api"], optional = true }
 
@@ -96,3 +96,7 @@ d3d12 = ["windows"]
 public-winapi = ["dep:winapi"]
 
 default = ["d3d12", "vulkan"]
+
+[patch.crates-io]
+ash = { git = "https://github.com/ash-rs/ash", rev = "0652aee" }
+ash-window = { git = "https://github.com/ash-rs/ash", rev = "0652aee" }
